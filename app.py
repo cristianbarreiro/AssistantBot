@@ -11,58 +11,65 @@ FAQ = {
         "Escribinos a soporte@tusitio.com o pulsá el botón de chat en vivo abajo a la derecha.",
 }
 
-faq_list = list(FAQ.items())  # [(pregunta, respuesta), ...]
+faq_list = list(FAQ.items())
 
 def menu_preguntas():
-    return "\n".join([f"{i+1}. {q}" for i, (q, _) in enumerate(faq_list)]) + \
-        "\n\n👉 Escribí el número de la pregunta o escribí tu consulta:"
+    return "Perfecto. Estas son las preguntas frecuentes:\n\n" + \
+           "\n".join([f"{i+1}. {q}" for i, (q, _) in enumerate(faq_list)]) + \
+           "\n\n👉 Escribí el número de la pregunta o escribí tu consulta:"
 
-def responder(mensaje: str, historial: list[list[str]]):
+def responder(mensaje: str, historial: list[list[str]], stage: int):
     historial = historial or []
 
-    # Intentar convertir mensaje a número
+    # Etapa 1: el usuario saluda → bot responde con menú
+    if stage == 1:
+        historial.append([mensaje, None])  # Usuario habla
+        historial.append([None, menu_preguntas()])  # Bot responde
+        return historial, "", historial, 2
+
+    # Etapa 2+: manejar consulta como número o texto
     try:
         numero = int(mensaje)
         if 1 <= numero <= len(faq_list):
             pregunta, respuesta = faq_list[numero - 1]
-            historial.append(["user", f"{numero}"])  # Mostrar número que ingresó
-            historial.append(["assistant", f"📌 {pregunta}\n\n{respuesta}"])
-            historial.append(["assistant", "¿Querés saber algo más?\n\n" + menu_preguntas()])
-            return historial, "", historial
+            historial.append([mensaje, None])  # Usuario envía número
+            historial.append([None, f"📌 {pregunta}\n\n{respuesta}"])
+            historial.append([None, menu_preguntas()])
+            return historial, "", historial, 2
     except ValueError:
-        pass  # No es un número, sigue el flujo normal
+        pass
 
-    # Buscar pregunta exacta (por texto)
     if mensaje in FAQ:
         respuesta = FAQ[mensaje]
     else:
         respuesta = "Lo siento, no entiendo esa pregunta. Probá con otra o contactá a soporte@tusitio.com"
 
-    historial.append(["user", mensaje])
-    historial.append(["assistant", respuesta])
-    historial.append(["assistant", "¿Querés saber algo más?\n\n" + menu_preguntas()])
-
-    return historial, "", historial
+    historial.append([mensaje, None])  # Usuario pregunta
+    historial.append([None, respuesta])
+    historial.append([None, menu_preguntas()])
+    return historial, "", historial, 2
 
 def reiniciar():
     historial = [
-        ["assistant", "¡Hola! ¿En qué puedo ayudarte?"],
-        ["assistant", "Preguntas frecuentes:\n\n" + menu_preguntas()]
+        [None, "¡Hola!"]
     ]
-    return historial, "", []
+    return historial, "", [], 1
 
 with gr.Blocks() as demo:
     gr.Markdown("## 🛠️ Chatbot de Soporte\nPreguntá sobre nuestra plataforma y recibí ayuda al instante.")
 
-    chatbot = gr.Chatbot(label="Soporte", height=400)
-    caja = gr.Textbox(placeholder="Escribí tu pregunta o el número...", show_label=False)
-    enviar = gr.Button("Enviar")
-    reset = gr.Button("🗑 Reiniciar chat", variant="secondary")
-    estado = gr.State([])
+    chatbot      = gr.Chatbot(label="Soporte", height=400)
+    caja         = gr.Textbox(placeholder="Escribí tu mensaje...", show_label=False)
+    enviar       = gr.Button("Enviar")
+    reset        = gr.Button("🗑 Reiniciar chat", variant="secondary")
+    estado_hist  = gr.State([])
+    estado_stage = gr.State(1)
 
-    enviar.click(responder, inputs=[caja, estado], outputs=[chatbot, caja, estado])
-    caja.submit(responder, inputs=[caja, estado], outputs=[chatbot, caja, estado])
-    reset.click(fn=reiniciar, inputs=[], outputs=[chatbot, caja, estado])
-    demo.load(fn=reiniciar, inputs=[], outputs=[chatbot, caja, estado])
+    enviar.click(responder, inputs=[caja, estado_hist, estado_stage],
+                 outputs=[chatbot, caja, estado_hist, estado_stage])
+    caja.submit(responder, inputs=[caja, estado_hist, estado_stage],
+                outputs=[chatbot, caja, estado_hist, estado_stage])
+    reset.click(fn=reiniciar, inputs=[], outputs=[chatbot, caja, estado_hist, estado_stage])
+    demo.load(fn=reiniciar, inputs=[], outputs=[chatbot, caja, estado_hist, estado_stage])
 
 demo.launch()
