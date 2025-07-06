@@ -21,20 +21,19 @@ def menu_preguntas():
 def responder(mensaje: str, historial: list[list[str]], stage: int):
     historial = historial or []
 
-    # Etapa 1: el usuario saluda → bot responde con menú
+    # Etapa 1: saludo → responder con menú
     if stage == 1:
-        historial.append([mensaje, None])  # Usuario habla
-        historial.append([None, menu_preguntas()])  # Bot responde
+        respuesta = menu_preguntas()
+        historial.append([mensaje, respuesta])
         return historial, "", historial, 2
 
-    # Etapa 2+: manejar consulta como número o texto
+    # Etapa 2+: procesar número o texto
     try:
         numero = int(mensaje)
         if 1 <= numero <= len(faq_list):
-            pregunta, respuesta = faq_list[numero - 1]
-            historial.append([mensaje, None])  # Usuario envía número
-            historial.append([None, f"📌 {pregunta}\n\n{respuesta}"])
-            historial.append([None, menu_preguntas()])
+            pregunta, respuesta_faq = faq_list[numero - 1]
+            respuesta = f"📌 {pregunta}\n\n{respuesta_faq}\n\n" + menu_preguntas()
+            historial.append([mensaje, respuesta])
             return historial, "", historial, 2
     except ValueError:
         pass
@@ -44,14 +43,13 @@ def responder(mensaje: str, historial: list[list[str]], stage: int):
     else:
         respuesta = "Lo siento, no entiendo esa pregunta. Probá con otra o contactá a soporte@tusitio.com"
 
-    historial.append([mensaje, None])  # Usuario pregunta
-    historial.append([None, respuesta])
-    historial.append([None, menu_preguntas()])
+    respuesta += "\n\n" + menu_preguntas()
+    historial.append([mensaje, respuesta])
     return historial, "", historial, 2
 
 def reiniciar():
     historial = [
-        [None, "¡Hola!"]
+        ["", "¡Hola!"]
     ]
     return historial, "", [], 1
 
@@ -73,3 +71,4 @@ with gr.Blocks() as demo:
     demo.load(fn=reiniciar, inputs=[], outputs=[chatbot, caja, estado_hist, estado_stage])
 
 demo.launch()
+
