@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+.env/
+
+# Archivos de entorno (variables de entorno)
+.env
+
+# Configuraciones de IDEs
+.vscode/
+.idea/
+
+# Archivos de logs
+*.log
+
+# Archivos de bases de datos
+*.sqlite3
+
+# Archivos de caché
+*.cache
+
+# Archivos generados por Python
+*.pyc
+
+# Archivos específicos de sistema
+.DS_Store
+Thumbs.db
+
+# Carpeta de dependencias instaladas por pip (si está dentro del repo)
+site-packages/
+
+# Gradio assets u otros archivos generados (opcional)
+gradio-frontend/
