@@ -2,6 +2,8 @@
 
 Este proyecto es un chatbot de soporte al cliente construido con [Gradio](https://www.gradio.app/) y la API de [AI21 Labs](https://www.ai21.com/). Permite responder preguntas frecuentes y también ofrece un modo de chat libre con inteligencia artificial.
 
+![Chatbot en acción](images/chatbot.png "Interfaz del chatbot")
+
 ## 🚀 Funcionalidades
 
 - Menú con preguntas frecuentes (FAQ)
